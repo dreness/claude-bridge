@@ -44,7 +44,13 @@ if curl -s http://$HOST:$PORT/healthz > /dev/null 2>&1; then
     curl -s http://$HOST:$PORT/healthz | jq . 2>/dev/null || curl -s http://$HOST:$PORT/healthz
     echo ""
     echo "🌐 Server running on: http://$HOST:$PORT"
-    echo "📱 Next: Run 'tailscale serve --https=443 --bg localhost:$PORT' to expose to iPhone"
+    LOCAL_IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo "Unable to detect")
+    if [ "$LOCAL_IP" != "Unable to detect" ]; then
+        echo "📱 iPhone access URL: http://$LOCAL_IP:$PORT"
+        echo "   Use this in your iOS Shortcut"
+    else
+        echo "📱 Run 'ipconfig getifaddr en0' to get your Mac's IP for iPhone access"
+    fi
 else
     echo "❌ Failed to start bridge server"
     echo "📋 Check logs: tail -f $LOG_DIR/server.log"

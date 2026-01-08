@@ -6,26 +6,26 @@ A secure, private system that lets you continue your AI-powered development work
 
 ## ⚡ Quick Start
 
-1. **Install Tailscale** on Mac and iPhone, sign in to same account
+1. **Ensure iPhone and Mac are on the same network** (WiFi)
 2. **Run setup**: `./setup.sh` (creates bridge server and configures everything)
 3. **Start Claude Code**: `tmux attach -t claude && cd ~/Documents/Code && claude`
 4. **Create iOS Shortcut** (3 actions: dictate → send → open live view)
-5. **Use from anywhere**: Tap shortcut → dictate → see responses in Safari
+5. **Use from anywhere on your network**: Tap shortcut → dictate → see responses in Safari
 
-**That's it!** You can now control Claude Code from your iPhone while on the go.
+**That's it!** You can now control Claude Code from your iPhone while connected to the same network.
 
 ## 🎯 What This Does
 
 - **Voice to Claude**: Dictate messages on your iPhone that get sent directly to Claude Code on your Mac
 - **Live View**: See Claude's responses in real-time through a beautiful, mobile-optimized web interface
-- **Secure & Private**: Uses Tailscale for encrypted, private network access - no public internet exposure
+- **Secure & Private**: Direct network connection - no third party services required (except your LLM API)
 - **Always Available**: Keep your development session running while you're away from your computer
 
 ## 🚀 Key Features
 
 - **🎤 Voice Commands**: Dictate messages from your iPhone to Claude Code
 - **📱 Mobile-Optimized Live View**: Beautiful, full-screen interface for reading Claude's responses
-- **🔒 Secure & Private**: Tailscale-only access with HTTPS encryption
+- **🔒 Secure & Private**: Direct network connection - no third party services
 - **⚡ Real-Time Updates**: See Claude's responses as they're generated
 - **🔄 Manual Refresh**: Control when to check for new responses
 - **📌 Sticky Header**: Always-accessible refresh button and status
@@ -34,11 +34,11 @@ A secure, private system that lets you continue your AI-powered development work
 ## 🏗️ Architecture
 
 ```
-iPhone → Tailscale → Mac → Claude Bridge → tmux → Claude Code (AI Chat)
+iPhone → Local Network → Mac → Claude Bridge → tmux → Claude Code (AI Chat)
 ```
 
 1. **iPhone**: iOS Shortcut captures voice input and sends HTTP requests
-2. **Tailscale**: Secure VPN connection between devices
+2. **Local Network**: Direct HTTP connection (both devices on same WiFi)
 3. **Mac**: FastAPI server receives messages and manages tmux
 4. **tmux**: Reliable command injection and output capture
 5. **Claude Code**: AI-powered development assistant that you chat with
@@ -47,7 +47,7 @@ iPhone → Tailscale → Mac → Claude Bridge → tmux → Claude Code (AI Chat
 
 - macOS with Homebrew
 - iPhone with iOS Shortcuts app
-- Tailscale account (free tier works)
+- iPhone and Mac connected to the same WiFi network
 - Python 3.8+ (installed via uv)
 - Claude Code installed and accessible via `claude` command
 
@@ -55,22 +55,11 @@ iPhone → Tailscale → Mac → Claude Bridge → tmux → Claude Code (AI Chat
 
 **These steps cannot be automated and must be done manually:**
 
-### 1. Tailscale Account Setup
-- Go to [tailscale.com](https://tailscale.com) and create a free account
-- Sign in with Google, GitHub, or other supported providers
-- This creates your personal tailnet
+### 1. Network Connection
+- Ensure your Mac and iPhone are connected to the same WiFi network
+- Find your Mac's IP address (the setup script will show this)
 
-### 2. Tailscale App Installation
-- **On Mac**: Download from [tailscale.com/download](https://tailscale.com/download) or use `brew install tailscale`
-- **On iPhone**: Install from the App Store
-- Sign in to both apps with the same account
-
-### 3. MagicDNS Configuration
-- Go to [login.tailscale.com/admin/dns](https://login.tailscale.com/admin/dns)
-- Enable MagicDNS for your tailnet
-- This allows you to use `your-mac.your-tailnet.ts.net` URLs
-
-### 4. iOS Shortcut Creation
+### 2. iOS Shortcut Creation
 - Follow the detailed guide in [ios-shortcut-guide.md](ios-shortcut-guide.md)
 - This requires manual setup in the Shortcuts app
 
@@ -90,29 +79,9 @@ chmod +x *.sh
 ./setup.sh
 ```
 
-### 2. Configure Tailscale
+The setup script will display your Mac's IP address and authentication token.
 
-```bash
-# Install and configure Tailscale
-./tailscale-setup.sh
-
-# On your iPhone:
-# 1. Install Tailscale from App Store
-# 2. Sign in with same account
-# 3. Enable VPN connection
-```
-
-### 3. Expose the Bridge
-
-```bash
-# Make bridge accessible from iPhone (uses PORT from .env)
-tailscale serve --https=443 --bg localhost:8008
-
-# Verify it's working
-tailscale serve status
-```
-
-### 4. Test the Setup
+### 2. Test the Setup
 
 ```bash
 # Verify everything is working
@@ -138,7 +107,7 @@ tailscale serve status
 
 #### Action 2: Send Message (POST Request)
 - **Action**: "Get Contents of URL"
-- **URL**: `https://YOUR-MAC-NAME.YOUR-TAILNET.ts.net/send`
+- **URL**: `http://YOUR-MAC-IP:8008/send`
 - **Method**: `POST`
 - **Headers**: 
   - `Authorization`: `Bearer YOUR_TOKEN_HERE`
@@ -153,7 +122,7 @@ tailscale serve status
 
 #### Action 3: Open Live View (GET Request)
 - **Action**: "Get Contents of URL" 
-- **URL**: `https://YOUR-MAC-NAME.YOUR-TAILNET.ts.net/jobs/[Response from URL]/live`
+- **URL**: `http://YOUR-MAC-IP:8008/jobs/[Response from URL]/live`
 - **Method**: `GET`
 - **Headers**: None
 - **Request Body**: None
@@ -161,19 +130,18 @@ tailscale serve status
 ### Finding Your URLs and Token
 
 ```bash
-# Get your Mac's Tailscale name and tailnet
-tailscale status
+# Get your Mac's IP address
+ipconfig getifaddr en0
 
 # Get your authentication token
 cat ~/.claude-bridge/token.txt
-
-# Test your setup
-curl -s https://YOUR-MAC-NAME.YOUR-TAILNET.ts.net/healthz
 ```
 
 **Example URLs:**
-- Send message: `https://your-mac.your-tailnet.ts.net/send`
-- Live view: `https://your-mac.your-tailnet.ts.net/jobs/abc123/live`
+- Send message: `http://192.168.1.100:8008/send`
+- Live view: `http://192.168.1.100:8008/jobs/abc123/live`
+
+**Note**: Replace `192.168.1.100` with your Mac's actual IP address.
 
 ## 🔧 Configuration
 
@@ -244,12 +212,11 @@ claude
 
 #### 3. **Verify Remote Access**
 ```bash
-# Test that Tailscale serve is working
-tailscale serve status
+# Get your Mac's IP address
+ipconfig getifaddr en0
 
 # Should show something like:
-# https://your-mac.your-tailnet.ts.net (tailnet only)
-#   └── / -> http://127.0.0.1:8008
+# 192.168.1.100
 
 # Quick test from your Mac
 curl -s http://localhost:8008/healthz
@@ -277,9 +244,9 @@ caffeinate -d &
 
 #### 6. **What Happens Behind the Scenes**
 ```
-Your Voice → iPhone Shortcut → Tailscale → Your Mac → Bridge Server → tmux → Claude Code
+Your Voice → iPhone Shortcut → WiFi → Your Mac → Bridge Server → tmux → Claude Code
                                                                                     ↓
-Your iPhone ← Tailscale ← Your Mac ← Bridge Server ← tmux ← Claude Code Response
+Your iPhone ← WiFi ← Your Mac ← Bridge Server ← tmux ← Claude Code Response
 ```
 
 ### When You Return Home
@@ -310,7 +277,7 @@ tmux attach -t claude
 When you send a message from your iPhone:
 
 1. **Voice input** → iOS Shortcut captures your dictated text
-2. **HTTP POST** → Sends message to bridge server via Tailscale
+2. **HTTP POST** → Sends message to bridge server over local network
 3. **tmux injection** → Bridge sends text directly to Claude Code
 4. **Auto-submit** → Message is automatically submitted with Enter key
 5. **Live view** → Opens mobile-optimized web interface to see responses
@@ -339,18 +306,18 @@ curl -H "Authorization: Bearer $TOKEN" \
      -d '{"text":"Hello Claude! Can you help me with some coding?"}' \
      http://127.0.0.1:8008/send
 
-# Test from iPhone (replace with your actual URL)
+# Test from iPhone (replace with your Mac's IP)
 curl -H "Authorization: Bearer $TOKEN" \
      -H "Content-Type: application/json" \
      -d '{"text":"What files are in the current directory?"}' \
-     https://your-mac.your-tailnet.ts.net/send
+     http://YOUR-MAC-IP:8008/send
 ```
 
 ## 🔒 Security Features
 
-- **Private Access Only**: Default tailnet-only access
+- **Local Network Only**: Access limited to devices on your network
 - **Bearer Token Authentication**: Secure API access
-- **HTTPS Encryption**: Managed certificates via Tailscale
+- **No Third Party Services**: Direct connection between your devices
 - **No Shell Execution**: Messages only sent to Claude Code
 - **Request Logging**: All requests logged with timestamps
 
@@ -422,7 +389,7 @@ When your iPhone shortcuts aren't working, follow these steps to identify the pr
 - **Success**: `{"id":"abc123","status":"accepted","preview":"..."}`
 - **Auth Error**: `{"error":"unauthorized"}` → Check your bearer token
 - **Not Found**: `{"detail":"Not Found"}` → Bridge server down or wrong URL
-- **Network Error**: Connection timeout → Tailscale or Mac sleep issue
+- **Network Error**: Connection timeout → Mac sleep or network issue
 
 #### 2. **Quick Health Check from iPhone**
 ```bash
@@ -430,7 +397,7 @@ When your iPhone shortcuts aren't working, follow these steps to identify the pr
 https://your-mac.your-tailnet.ts.net/healthz
 
 # Should show: {"ok":true,"tmux_target":"claude:0.0"}
-# If it fails: Mac is asleep or Tailscale is down
+# If it fails: Mac is asleep or not on same network
 ```
 
 #### 3. **Systematic Diagnosis Process**
@@ -438,9 +405,9 @@ https://your-mac.your-tailnet.ts.net/healthz
 **Step A: Is your Mac reachable?**
 ```bash
 # From your iPhone, try accessing:
-https://your-mac.your-tailnet.ts.net/healthz
+http://YOUR-MAC-IP:8008/healthz
 
-❌ Fails? → Mac is asleep or Tailscale issue
+❌ Fails? → Mac is asleep or not on the same network
 ✅ Works? → Continue to Step B
 ```
 
@@ -475,13 +442,15 @@ tail -20 ~/.claude-bridge/logs/bridge.log
 
 #### Pattern 1: "Connection Failed" on iPhone
 **Symptoms**: Shortcut shows network error, can't reach server
-**Cause**: Mac went to sleep or Tailscale disconnected
+**Cause**: Mac went to sleep or devices are on different networks
 **Fix**:
 ```bash
-# Wake up Mac, then:
-tailscale status  # Check if connected
-tailscale up      # Reconnect if needed
-caffeinate -d &   # Prevent future sleep
+# Wake up Mac, then verify network connection
+# Check if both devices are on the same WiFi network
+# Get your Mac's IP address:
+ipconfig getifaddr en0
+# Prevent future sleep
+caffeinate -d &
 ```
 
 #### Pattern 2: "Unauthorized" Error
@@ -541,8 +510,8 @@ echo ""
 echo "tmux Session Status:"
 tmux list-sessions | grep claude || echo "❌ No claude tmux session"
 echo ""
-echo "Tailscale Status:"
-tailscale status | head -3
+echo "Network Status:"
+ipconfig getifaddr en0 || ipconfig getifaddr en1 || echo "Unable to detect IP"
 echo ""
 echo "Recent Bridge Logs:"
 tail -10 ~/.claude-bridge/logs/bridge.log
@@ -555,12 +524,12 @@ tail -10 ~/.claude-bridge/logs/bridge.log
 When shortcuts fail, test these URLs directly in Safari:
 
 ```
-1. https://your-mac.your-tailnet.ts.net/healthz
+1. http://YOUR-MAC-IP:8008/healthz
 
    ✅ Works → Mac and bridge are up
-   ❌ Fails → Mac asleep or Tailscale down
+   ❌ Fails → Mac asleep, different network, or firewall blocking
 
-2. https://your-mac.your-tailnet.ts.net/send
+2. http://YOUR-MAC-IP:8008/send
    (Will show "Method Not Allowed" - this is expected)
    ✅ Shows error page → Bridge server responding
    ❌ Can't connect → Bridge server down
@@ -605,16 +574,18 @@ tmux kill-session -t claude
 tmux new -s claude -d
 ```
 
-#### Tailscale Connection Issues
+#### Network Connection Issues
 ```bash
-# Check Tailscale status
-tailscale status
+# Verify both devices are on the same network
+# On Mac, get your IP address:
+ipconfig getifaddr en0
 
-# Restart Tailscale
-tailscale down && tailscale up
+# Test connection from iPhone:
+# Open Safari and visit: http://YOUR-MAC-IP:8008/healthz
 
-# Check serve status
-tailscale serve status
+# If it doesn't work, check firewall settings:
+# System Preferences > Security & Privacy > Firewall
+# Make sure Python is allowed to accept incoming connections
 ```
 
 #### Authentication Errors
@@ -668,9 +639,6 @@ openssl rand -hex 32 > ~/.claude-bridge/token.txt
 
 ### Updates
 ```bash
-# Update Tailscale
-brew upgrade tailscale
-
 # Update Python dependencies
 source ~/.claude-bridge/venv/bin/activate
 uv pip install --upgrade fastapi uvicorn pydantic
@@ -684,27 +652,19 @@ curl -s http://127.0.0.1:8008/healthz
 # Monitor logs
 tail -f ~/.claude-bridge/logs/bridge.log
 
-# Check Tailscale status
-tailscale status
-tailscale serve status
+# Check network connectivity
+ping YOUR-MAC-IP  # From iPhone or another device
 ```
 
-## 🌐 Public Access (Optional)
+## 🌐 Remote Access (Optional)
 
-If you need public internet access:
+If you need to access your bridge from outside your local network, you have a few options:
 
-```bash
-# Enable Funnel (public HTTPS)
-tailscale funnel 443 on
+1. **VPN**: Set up a VPN to your home network
+2. **Port Forwarding**: Configure your router to forward port 8008 to your Mac
+3. **ngrok or similar**: Use a tunneling service for temporary access
 
-# Check status
-tailscale funnel status
-
-# Disable when not needed
-tailscale funnel 443 off
-```
-
-**Warning**: Public access requires strong authentication and careful security consideration.
+**Warning**: Remote access requires strong authentication and careful security consideration. The current bearer token authentication provides basic security, but consider additional measures for internet-exposed services.
 
 ## 📚 File Structure
 
@@ -722,7 +682,6 @@ tailscale funnel 443 off
 ├── demo.sh                            # Demo script
 ├── debug-claude-bridge.sh             # Diagnostic script
 ├── quick-start.sh                     # Quick setup script
-├── tailscale-setup.sh                 # Tailscale configuration
 └── ios-shortcut-guide.md              # Detailed iOS Shortcut setup guide
 ```
 
@@ -765,7 +724,6 @@ MIT License - see LICENSE file for details.
 
 ## 🙏 Acknowledgments
 
-- **Tailscale** for secure, zero-config networking
 - **FastAPI** for the modern, fast web framework
 - **tmux** for reliable terminal session management
 - **Claude Code** for the AI-powered development environment
