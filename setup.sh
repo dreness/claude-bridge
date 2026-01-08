@@ -86,12 +86,23 @@ fi
 echo "🔑 Your authentication token is:"
 echo "   $(cat ~/.claude-bridge/token.txt)"
 echo ""
-echo "📱 To use from your iPhone:"
-echo "   1. Install Tailscale on both Mac and iPhone"
-echo "   2. Sign in with the same account on both devices"
-echo "   3. Enable MagicDNS in Tailscale admin console"
-echo "   4. Run: tailscale serve --https=443 --bg localhost:8008"
-echo "   5. Create iOS Shortcut using the token above"
+echo "🌐 Finding your Mac's network address..."
+# Get the local IP address
+LOCAL_IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo "Unable to detect")
+if [ "$LOCAL_IP" != "Unable to detect" ]; then
+    echo "   Your Mac's IP address: $LOCAL_IP"
+    echo "   Bridge URL: http://$LOCAL_IP:8008"
+else
+    echo "   Run 'ifconfig' to find your network address"
+    echo "   Look for 'inet' under your active network interface (en0 or en1)"
+fi
 echo ""
-echo "✅ Setup complete! The bridge server should be running on localhost:8008"
+echo "📱 To use from your iPhone:"
+echo "   1. Ensure your iPhone and Mac are on the same network"
+echo "   2. Note your Mac's IP address from above"
+echo "   3. Create iOS Shortcut using:"
+echo "      - URL: http://YOUR-MAC-IP:8008/send"
+echo "      - Token: $(cat ~/.claude-bridge/token.txt)"
+echo ""
+echo "✅ Setup complete! The bridge server should be running on 0.0.0.0:8008"
 echo "🔍 Test with: curl -s http://127.0.0.1:8008/healthz"

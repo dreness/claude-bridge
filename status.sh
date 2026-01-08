@@ -51,18 +51,15 @@ else
 fi
 echo ""
 
-# Check Tailscale
-echo "🔗 Tailscale:"
-if command -v tailscale &> /dev/null; then
-    if tailscale status &> /dev/null; then
-        echo "✅ Running"
-        SERVE_STATUS=$(tailscale serve status 2>/dev/null || echo "No serve config")
-        echo "   Serve: $SERVE_STATUS"
-    else
-        echo "❌ Not running"
-    fi
+# Check network
+echo "🌐 Network:"
+LOCAL_IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo "Unable to detect")
+if [ "$LOCAL_IP" != "Unable to detect" ]; then
+    echo "✅ Mac IP Address: $LOCAL_IP"
+    echo "   Bridge URL: http://$LOCAL_IP:$PORT"
 else
-    echo "❌ Not installed"
+    echo "⚠️  Unable to detect IP address"
+    echo "   Run: ipconfig getifaddr en0"
 fi
 echo ""
 
@@ -102,9 +99,9 @@ fi
 echo ""
 
 echo "📱 To use from iPhone:"
-echo "   1. Ensure Tailscale is running on both devices"
-echo "   2. Run: tailscale serve --https=443 --bg localhost:$PORT"
-echo "   3. Create iOS Shortcut using ios-shortcut-guide.md"
+echo "   1. Ensure both devices are on the same WiFi network"
+echo "   2. Use this URL in your iOS Shortcut: http://$LOCAL_IP:$PORT/send"
+echo "   3. Follow ios-shortcut-guide.md for setup instructions"
 echo ""
 echo "🧪 Test locally: ./demo.sh"
 echo "🔧 Full test: ./test-bridge.sh"

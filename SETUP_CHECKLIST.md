@@ -4,7 +4,7 @@ This checklist clearly shows what gets automated vs. what you need to do manuall
 
 ## ✅ **AUTOMATED by Scripts** (No manual work needed)
 
-- [x] Install Homebrew packages (tmux, uv, tailscale CLI)
+- [x] Install Homebrew packages (tmux, uv)
 - [x] Create Python virtual environment
 - [x] Install Python dependencies (FastAPI, uvicorn, pydantic)
 - [x] Generate authentication token
@@ -12,42 +12,26 @@ This checklist clearly shows what gets automated vs. what you need to do manuall
 - [x] Set up LaunchAgent for auto-start
 - [x] Create tmux session
 - [x] Test local bridge functionality
-- [x] Configure Tailscale CLI settings
 
 ## ⚠️ **MANUAL Steps Required** (Cannot be automated)
 
-### 1. Tailscale Account & Setup
-- [ ] Go to [tailscale.com](https://tailscale.com)
-- [ ] Create free account (Google/GitHub login)
-- [ ] Note your tailnet name (e.g., `your-tailnet.ts.net`)
+### 1. Network Connection
+- [ ] Ensure Mac and iPhone are on the same WiFi network
+- [ ] Note your Mac's IP address (shown by setup script)
 
-### 2. Install Tailscale Apps
-- [ ] **Mac**: Download from [tailscale.com/download](https://tailscale.com/download) or `brew install tailscale`
-- [ ] **iPhone**: Install from App Store
-- [ ] Sign in to both apps with same account
-
-### 3. Enable MagicDNS
-- [ ] Go to [login.tailscale.com/admin/dns](https://login.tailscale.com/admin/dns)
-- [ ] Enable MagicDNS for your tailnet
-- [ ] This allows `your-mac.your-tailnet.ts.net` URLs
-
-### 4. Expose Bridge to iPhone
-- [ ] Run: `tailscale serve --https=443 --bg localhost:8008`
-- [ ] Verify: `tailscale serve status`
-
-### 5. Create iOS Shortcut
+### 2. iOS Shortcut Creation
 - [ ] Follow [ios-shortcut-guide.md](ios-shortcut-guide.md)
 - [ ] Use your authentication token from `~/.claude-bridge/token.txt`
-- [ ] Configure with your actual Mac hostname and tailnet name
+- [ ] Configure with your Mac's IP address
 
 ## 🚀 **Quick Start Workflow**
 
 ```bash
-# 1. Complete manual steps 1-3 above FIRST
-# 2. Run automated setup
-./quick-start.sh
+# 1. Run automated setup
+./setup.sh
 
-# 3. Complete manual steps 4-5 above
+# 2. Note the IP address and token shown by the script
+# 3. Create iOS Shortcut following the guide
 # 4. Test from iPhone!
 ```
 
@@ -60,32 +44,32 @@ This checklist clearly shows what gets automated vs. what you need to do manuall
 # Test bridge locally
 ./demo.sh
 
-# Check Tailscale
-tailscale status
-tailscale serve status
+# Get your Mac's IP address
+ipconfig getifaddr en0
 
-# Test from iPhone (replace with your URL)
-curl https://your-mac.your-tailnet.ts.net/healthz
+# Test from iPhone (replace with your Mac's IP)
+# Open Safari on iPhone and visit:
+http://YOUR-MAC-IP:8008/healthz
 ```
 
 ## ❓ **Common Questions**
 
-**Q: Why can't the scripts create my Tailscale account?**
-A: Tailscale accounts require web browser interaction and cannot be created via CLI.
+**Q: Why can't I connect from my iPhone?**
+A: Ensure both devices are on the same WiFi network and check your Mac's firewall settings.
 
-**Q: Why can't the scripts install the iPhone app?**
-A: iOS app installation requires the App Store and cannot be automated from a Mac.
+**Q: Do I need to use the same WiFi network?**
+A: Yes, both devices must be on the same local network for this setup to work.
 
-**Q: Why can't the scripts create the iOS Shortcut?**
-A: iOS Shortcuts require manual setup in the Shortcuts app and cannot be created remotely.
+**Q: What if my IP address changes?**
+A: You'll need to update the URL in your iOS Shortcut. Consider setting a static IP for your Mac in your router settings.
 
-**Q: What happens if I skip the manual steps?**
-A: The bridge will work locally but won't be accessible from your iPhone, defeating the purpose.
+**Q: Can I access this from outside my home network?**
+A: Not with this basic setup. You would need to configure VPN, port forwarding, or use a tunneling service.
 
 ## 🎯 **Success Criteria**
 
 You're ready to use Claude Bridge when:
 - [ ] Bridge responds to `curl http://127.0.0.1:8008/healthz`
-- [ ] `tailscale serve status` shows your bridge
-- [ ] iPhone can reach `https://your-mac.your-tailnet.ts.net/healthz`
+- [ ] You know your Mac's IP address
+- [ ] iPhone can reach `http://YOUR-MAC-IP:8008/healthz` from Safari
 - [ ] iOS Shortcut successfully sends commands and receives responses

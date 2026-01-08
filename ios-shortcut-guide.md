@@ -5,8 +5,8 @@ This guide will help you create an iOS Shortcut that allows you to control Claud
 ## Prerequisites
 
 1. ✅ Claude Bridge server running on your Mac
-2. ✅ Tailscale installed and configured on both Mac and iPhone
-3. ✅ Bridge server exposed via `tailscale serve --https=443 --bg localhost:8008`
+2. ✅ Mac and iPhone connected to the same WiFi network
+3. ✅ Your Mac's IP address (from setup script or `ipconfig getifaddr en0`)
 4. ✅ Your authentication token from `~/.claude-bridge/token.txt`
 
 ## Step-by-Step Shortcut Creation
@@ -36,7 +36,7 @@ OR
 #### Action 2: Get Contents of URL (POST)
 - Add the action
 - Configure:
-  - URL: `https://[YOUR-DEVICE].[YOUR-TAILNET].ts.net/send`
+  - URL: `http://[YOUR-MAC-IP]:8008/send`
   - Method: `POST`
   - Headers: Add new header
     - Add entry
@@ -60,7 +60,7 @@ OR
 #### Action 5: Text (URL Construction)
 - Add the action
 - Configure:
-  - Text: `https://[YOUR-DEVICE].[YOUR-TAILNET].ts.net/jobs/`[Dictionary Value]`/live`
+  - Text: `http://[YOUR-MAC-IP]:8008/jobs/`[Dictionary Value]`/live`
   - Note: "Dictionary Value" will be highlighted in orange, indicating it's a variable
 
 #### Action 6: Open URL in Chrome (or another browser)
@@ -74,23 +74,21 @@ OR
 ## Configuration Notes
 
 ### Replace Placeholders
-- `YOUR-DEVICE`: Your device's hostname on Tailnet
-- `YOUR-TAILNET`: Your Tailscale tailnet name
+- `YOUR-MAC-IP`: Your Mac's IP address (e.g., `192.168.1.100`)
 - `YOUR_TOKEN_HERE`: Your authentication token from `~/.claude-bridge/token.txt`
 
-### How the ID System Works
-1. **Send command** to `/send` endpoint → gets response with `{"id": "abc123", ...}`
-2. **"Get dictionary from"** action extracts the response
-3. **"Get Dictionary Value"** action extracts just the `id` field (e.g., "abc123")
-4. **"Text"** action constructs URL using the extracted `id` value
-5. **"Get contents of URL"** uses the constructed URL to fetch the job output
-
-**Note**: You must extract the `id` value using "Get Dictionary Value" before constructing the URL. The `Dictionary` variable contains the entire response, not just the ID.
+### How to Find Your Mac's IP Address
+```bash
+# Run this on your Mac
+ipconfig getifaddr en0
+# Or if that doesn't work:
+ipconfig getifaddr en1
+```
 
 ### Example URL
-If your Mac is named `jane-macbook` and your tailnet is `tail34ikjy`, your URL would be:
+If your Mac's IP is `192.168.1.100`, your URL would be:
 ```
-https://david-macbook.tail34ikjy.ts.net/send
+http://192.168.1.100:8008/send
 ```
 
 ## Usage
@@ -104,9 +102,10 @@ https://david-macbook.tail34ikjy.ts.net/send
 ## Troubleshooting
 
 ### Connection Issues
-- Ensure Tailscale is running on both devices
-- Check that the bridge server is exposed via `tailscale serve`
-- Verify the URL is correct in the shortcut
+- Ensure both devices are on the same WiFi network
+- Check that the bridge server is running on your Mac
+- Verify the IP address hasn't changed (DHCP can reassign IPs)
+- Check Mac's firewall settings allow Python connections
 
 ### Authentication Issues
 - Ensure the token in the shortcut matches your Mac's token

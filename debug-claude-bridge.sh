@@ -36,19 +36,18 @@ else
 fi
 echo ""
 
-# Tailscale Status
-echo "🔐 Tailscale Status:"
-if command -v tailscale > /dev/null; then
-    if tailscale status | head -1 | grep -q "Tailscale is"; then
-        echo "✅ Tailscale is connected"
-        echo "   $(tailscale status | head -1)"
-        echo "   Serve status:"
-        tailscale serve status 2>/dev/null | sed 's/^/   /' || echo "   No serve configuration"
-    else
-        echo "❌ Tailscale not connected"
-    fi
+# Network Status
+echo "🌐 Network Status:"
+LOCAL_IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo "Unable to detect")
+if [ "$LOCAL_IP" != "Unable to detect" ]; then
+    echo "✅ Mac IP Address: $LOCAL_IP"
+    echo "   Bridge accessible at: http://$LOCAL_IP:$PORT"
+    echo ""
+    echo "   Test from iPhone Safari:"
+    echo "   http://$LOCAL_IP:$PORT/healthz"
 else
-    echo "❌ Tailscale not installed"
+    echo "❌ Unable to detect IP address"
+    echo "   Run: ipconfig getifaddr en0"
 fi
 echo ""
 

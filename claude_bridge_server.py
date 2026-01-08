@@ -13,7 +13,7 @@ load_dotenv(os.path.expanduser("~/.claude-bridge/.env"))
 
 # ---- Config ----
 PORT = int(os.getenv("PORT", "8008"))
-HOST = os.getenv("HOST", "127.0.0.1")
+HOST = os.getenv("HOST", "0.0.0.0")
 TMUX_SESSION = os.getenv("TMUX_SESSION", "claude")
 STATE_DIR = Path(os.path.expandvars(os.getenv("STATE_DIR", "$HOME/.claude-bridge/jobs")))
 LOG_DIR = Path(os.path.expandvars(os.getenv("LOG_DIR", "$HOME/.claude-bridge/logs")))
