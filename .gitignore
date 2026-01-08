@@ -75,3 +75,4 @@ OPEN_SOURCE_PREPARATION.md
 /backup/*
 .DS_Store
 HOW_TO.md
+*.bak
