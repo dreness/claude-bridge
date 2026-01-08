@@ -244,9 +244,9 @@ caffeinate -d &
 
 #### 6. **What Happens Behind the Scenes**
 ```
-Your Voice → iPhone Shortcut → WiFi → Your Mac → Bridge Server → tmux → Claude Code
+Your Voice → iPhone Shortcut → Tailscale → Your Mac → Bridge Server → tmux → Claude Code
                                                                                     ↓
-Your iPhone ← WiFi ← Your Mac ← Bridge Server ← tmux ← Claude Code Response
+Your iPhone ← Tailscale ← Your Mac ← Bridge Server ← tmux ← Claude Code Response
 ```
 
 ### When You Return Home
